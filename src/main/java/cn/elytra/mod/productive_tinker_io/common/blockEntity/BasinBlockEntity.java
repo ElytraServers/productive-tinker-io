@@ -11,6 +11,8 @@ import cy.jdkdigital.productivemetalworks.util.RecipeHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -22,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -66,6 +69,22 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
                 sync(serverLevel);
             }
             setChanged();
+        }
+    };
+
+    public ItemStackHandler upgradeHandler = new ItemStackHandler(2) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            super.onContentsChanged(slot);
+            if(level instanceof ServerLevel serverLevel) {
+                sync(serverLevel);
+            }
+            setChanged();
+        }
+
+        @Override
+        protected int getStackLimit(int slot, @NotNull ItemStack stack) {
+            return 1;
         }
     };
 
@@ -135,6 +154,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             coolingTime = 0;
             maxCoolingTime = 1;
             sync(level);
+            setChanged();
         }
     }
 
@@ -150,6 +170,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
                 this.consumedFluid = fluidHandler.drain(recipeAmountFluid, IFluidHandler.FluidAction.EXECUTE);
 
                 sync(level);
+                setChanged();
             }
         }
     }
@@ -163,16 +184,22 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         return coolingTime > 0;
     }
 
-    public boolean isTable() {
-        return true;
+    public boolean isBasinMode() {
+        for(int i = 0; i < upgradeHandler.getSlots(); i++) {
+            // TODO: replace it with an upgrader
+            if(upgradeHandler.getStackInSlot(i).is(MetalworksRegistrator.CASTING_BASIN.get().asItem())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ItemCastingRecipe findRecipe(Level level, ItemStack cast, FluidStack fluid) {
-        boolean isTable = isTable();
-        if(isTable && cast.is(Items.BUCKET)) {
+        boolean isTableMode = !isBasinMode();
+        if(isTableMode && cast.is(Items.BUCKET)) {
             return new ItemCastingRecipe(Ingredient.of(cast), new SizedFluidIngredient(FluidIngredient.single(fluid), 1000), FluidUtil.getFilledBucket(fluid), true);
         } else {
-            if(!isTable && fluid.is(MetalworksRegistrator.MOLTEN_WAX.get())) {
+            if(!isTableMode && fluid.is(MetalworksRegistrator.MOLTEN_WAX.get())) {
                 if(cast.getItem() instanceof BlockItem castItem) {
                     Waxable waxData = castItem.getBlock().builtInRegistryHolder().getData(NeoForgeDataMaps.WAXABLES);
                     if(waxData != null) {
@@ -181,10 +208,10 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
                 }
             }
 
-            ItemCastingRecipe compatRecipe = RecipeHelper.getCompatRecipe(level, cast, fluid, isTable);
+            ItemCastingRecipe compatRecipe = RecipeHelper.getCompatRecipe(level, cast, fluid, isTableMode);
             if(compatRecipe != null) {
                 return compatRecipe;
-            } else if(isTable) {
+            } else if(isTableMode) {
                 RecipeHolder<ItemCastingRecipe> recipe = RecipeHelper.getItemCastingRecipe(level, cast, fluid);
                 return recipe != null ? recipe.value() : null;
             } else {
@@ -203,7 +230,16 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         super.savePacketNBT(tag, provider);
 
         tag.put("cast", castInv.serializeNBT(provider));
+        tag.put("upgraders", upgradeHandler.serializeNBT(provider));
         tag.putInt("coolingTime", coolingTime);
+        tag.putInt("maxCoolingTime", maxCoolingTime);
+
+        if(recipe != null) {
+            tag.put("recipe", getRecipeSerializer().codec().encoder().encodeStart(NbtOps.INSTANCE, recipe).getOrThrow());
+        }
+        if(consumedFluid != null) {
+            tag.put("consumedFluid", consumedFluid.save(provider));
+        }
     }
 
     @Override
@@ -213,9 +249,32 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         if(tag.contains("cast")) {
             castInv.deserializeNBT(provider, tag.getCompound("cast"));
         }
+        if(tag.contains("upgraders")) {
+            upgradeHandler.deserializeNBT(provider, tag.getCompound("upgraders"));
+        }
         if(tag.contains("coolingTime")) {
             coolingTime = tag.getInt("coolingTime");
         }
+        if(tag.contains("maxCoolingTime")) {
+            maxCoolingTime = tag.getInt("maxCoolingTime");
+        }
+        if(tag.contains("recipe")) {
+            recipe = getRecipeSerializer().codec().decoder().decode(NbtOps.INSTANCE, tag.getCompound("recipe"))
+                    .getOrThrow().getFirst();
+        }
+        if(tag.contains("consumedFluid")) {
+            consumedFluid = FluidStack.parse(provider, tag.getCompound("consumedFluid")).orElseThrow();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static RecipeSerializer<ItemCastingRecipe> getRecipeSerializer() {
+        return (RecipeSerializer<ItemCastingRecipe>) MetalworksRegistrator.ITEM_CASTING.get();
+    }
+
+    @Override
+    public @NotNull Component getDisplayName() {
+        return super.getDisplayName();
     }
 
     @Nullable

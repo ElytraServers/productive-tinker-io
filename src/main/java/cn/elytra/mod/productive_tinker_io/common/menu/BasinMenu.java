@@ -4,7 +4,6 @@ import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cy.jdkdigital.productivelib.container.AbstractContainer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -63,6 +62,8 @@ public class BasinMenu extends AbstractContainer {
 
         addSlot(new SlotItemHandler(blockEntity.castInv, 0, 68, 33));
         addSlot(new SlotItemHandler(blockEntity.getItemHandler(), 0, 128, 34));
+        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 0, 153, 25));
+        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 1, 153, 43));
 
         layoutPlayerInventorySlots(playerInventory, 0, 8, 84);
     }
@@ -91,6 +92,6 @@ public class BasinMenu extends AbstractContainer {
     }
 
     public boolean isBasinMode() {
-        return !blockEntity.isTable();
+        return blockEntity.isBasinMode();
     }
 }
