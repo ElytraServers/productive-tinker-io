@@ -3,6 +3,7 @@ package cn.elytra.mod.productive_tinker_io.common.menu;
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cy.jdkdigital.productivelib.container.AbstractContainer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -93,5 +94,9 @@ public class BasinMenu extends AbstractContainer {
 
     public boolean isBasinMode() {
         return blockEntity.isBasinMode();
+    }
+
+    public BlockPos getBlockPos() {
+        return blockEntity.getBlockPos();
     }
 }

@@ -52,10 +52,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            if(level instanceof ServerLevel serverLevel) {
-                sync(serverLevel);
-            }
-            setChanged();
+            markDirtyAndSync();
         }
     };
 
@@ -65,10 +62,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            if(level instanceof ServerLevel serverLevel) {
-                sync(serverLevel);
-            }
-            setChanged();
+            markDirtyAndSync();
         }
     };
 
@@ -76,10 +70,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            if(level instanceof ServerLevel serverLevel) {
-                sync(serverLevel);
-            }
-            setChanged();
+            markDirtyAndSync();
         }
 
         @Override
@@ -93,10 +84,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged() {
             super.onContentsChanged();
-            if(level instanceof ServerLevel serverLevel) {
-                sync(serverLevel);
-            }
-            setChanged();
+            markDirtyAndSync();
         }
     };
 
@@ -153,8 +141,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             consumedFluid = null;
             coolingTime = 0;
             maxCoolingTime = 1;
-            sync(level);
-            setChanged();
+            markDirtyAndSync();
         }
     }
 
@@ -169,8 +156,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
                 this.recipe = recipe;
                 this.consumedFluid = fluidHandler.drain(recipeAmountFluid, IFluidHandler.FluidAction.EXECUTE);
 
-                sync(level);
-                setChanged();
+                markDirtyAndSync();
             }
         }
     }
@@ -281,5 +267,12 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     @Override
     public AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
         return new BasinMenu(i, inventory, this);
+    }
+
+    public void markDirtyAndSync() {
+        if(level instanceof ServerLevel serverLevel) {
+            sync(serverLevel);
+        }
+        setChanged();
     }
 }
