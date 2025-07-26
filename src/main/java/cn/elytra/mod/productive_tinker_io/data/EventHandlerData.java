@@ -9,8 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockModelProvider;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.LanguageProvider;
@@ -45,12 +43,9 @@ class EventHandlerData {
             gen.addProvider(event.includeClient(), new BlockStateProvider(output, MODID, helper) {
                 @Override
                 protected void registerStatesAndModels() {
-                    // models().cubeTop()
                     simpleBlockWithItem(ProductiveTinkerIo.BASIN_BLOCK.get(), models().cubeTop(name(ProductiveTinkerIo.BASIN_BLOCK.get()), ResourceLocation.fromNamespaceAndPath(MODID, "block/smart_output_side"), ResourceLocation.fromNamespaceAndPath(MODID, "block/smart_output_top")));
                 }
             });
-
-
         }
     }
 

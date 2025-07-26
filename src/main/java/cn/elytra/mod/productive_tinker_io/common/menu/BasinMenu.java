@@ -19,6 +19,7 @@ import java.util.Objects;
 
 public class BasinMenu extends AbstractContainer {
 
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final Inventory playerInventory;
     private final BasinBlockEntity blockEntity;
 

@@ -19,7 +19,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -63,6 +62,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     private @Nullable ItemCastingRecipe recipe;
     private @Nullable FluidStack consumedFluid;
 
+    // the casting item slot
     public ItemStackHandler castInv = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -76,7 +76,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         }
     };
 
-    // possible the output
+    // the output item slot
     public ItemStackHandler itemHandler = new ItemStackHandler(1) {
 
         @Override
@@ -86,6 +86,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         }
     };
 
+    // the upgraders slots, size 2
     public ItemStackHandler upgradeHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -210,6 +211,9 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         return false;
     }
 
+    /**
+     * Copied from metalworks.
+     */
     private ItemCastingRecipe findRecipe(Level level, ItemStack cast, FluidStack fluid) {
         boolean isTableMode = !isBasinMode();
         if(isTableMode && cast.is(Items.BUCKET)) {
@@ -237,6 +241,10 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         }
     }
 
+    /**
+     * Drop the items when the tile is broken.
+     * Invoked by the block.
+     */
     public void dropItemStackOnRemove() {
         if(level == null) {
             return;
@@ -246,6 +254,13 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         stream.filter(it -> !it.isEmpty()).forEach(item -> Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, item));
     }
 
+    /**
+     * Check if an item is a valid upgrade.
+     * For now, it can be the casting Basin from metalworks and the speed upgrades from productivelib, tier 1 and 2.
+     *
+     * @param stack the item to check
+     * @return {@code true} if the item is a valid upgrade.
+     */
     public static boolean isValidUpgradeItem(ItemStack stack) {
         for(DeferredHolder<Item, ? extends Item> upgraderHolder : TIME_UPGRADE_MAP.keySet()) {
             if(stack.is(upgraderHolder.get())) {
@@ -255,6 +270,13 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         return stack.is(MetalworksRegistrator.CASTING_BASIN.get().asItem());
     }
 
+    /**
+     * Iterate the given upgrades, find the first valid speeding upgrade, and by the map, reduce the recipe time.
+     *
+     * @param originalTime the original time
+     * @param upgrades     the upgrades
+     * @return the reduced recipe time
+     */
     private static int getUpgradeReducedRecipeTime(int originalTime, ItemStackHandler upgrades) {
         double timeReduction = 0.0;
         outer:

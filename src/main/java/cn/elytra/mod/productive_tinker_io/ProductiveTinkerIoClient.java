@@ -18,9 +18,4 @@ public class ProductiveTinkerIoClient {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
-    @SubscribeEvent
-    static void onClientSetup(FMLClientSetupEvent event) {
-        ProductiveTinkerIo.LOGGER.info("HELLO FROM CLIENT SETUP");
-        ProductiveTinkerIo.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-    }
 }

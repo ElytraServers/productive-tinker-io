@@ -75,24 +75,9 @@ public class BasinBlock extends BaseEntityBlock {
         if(!level.isClientSide()) {
             if(level.getBlockEntity(pos) instanceof BasinBlockEntity basinBlockEntity) {
                 player.openMenu(basinBlockEntity, pos);
-                return InteractionResult.SUCCESS_NO_ITEM_USED;
             }
         }
-        return super.useWithoutItem(state, level, pos, player, hitResult);
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    @Override
-    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
-        if(!level.isClientSide()) {
-            if(level.getBlockEntity(pos) instanceof BasinBlockEntity basinBlockEntity) {
-                if(basinBlockEntity.castInv.getStackInSlot(0).isEmpty()) {
-                    if(stack.is(ModTags.Items.CASTS)) {
-                        ItemStack split = stack.split(1);
-                        basinBlockEntity.castInv.setStackInSlot(0, split);
-                    }
-                }
-            }
-        }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
-    }
 }

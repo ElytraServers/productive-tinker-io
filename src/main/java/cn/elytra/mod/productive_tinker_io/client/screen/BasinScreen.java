@@ -4,7 +4,6 @@ import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
 import cn.elytra.mod.productive_tinker_io.network.payload.EmptyTankButtonPacket;
 import cy.jdkdigital.productivelib.util.FluidContainerUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
