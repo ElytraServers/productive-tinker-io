@@ -3,14 +3,17 @@ package cn.elytra.mod.productive_tinker_io.common.menu;
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cy.jdkdigital.productivelib.container.AbstractContainer;
+import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -61,10 +64,30 @@ public class BasinMenu extends AbstractContainer {
             }
         });
 
-        addSlot(new SlotItemHandler(blockEntity.castInv, 0, 68, 33));
-        addSlot(new SlotItemHandler(blockEntity.getItemHandler(), 0, 128, 34));
-        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 0, 153, 25));
-        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 1, 153, 43));
+        addSlot(new SlotItemHandler(blockEntity.castInv, 0, 68, 33) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return stack.is(ModTags.Items.CASTS);
+            }
+        });
+        addSlot(new SlotItemHandler(blockEntity.getItemHandler(), 0, 128, 34) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return false;
+            }
+        });
+        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 0, 153, 25) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return BasinBlockEntity.isValidUpgradeItem(stack);
+            }
+        });
+        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 1, 153, 43) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return BasinBlockEntity.isValidUpgradeItem(stack);
+            }
+        });
 
         layoutPlayerInventorySlots(playerInventory, 0, 8, 84);
     }

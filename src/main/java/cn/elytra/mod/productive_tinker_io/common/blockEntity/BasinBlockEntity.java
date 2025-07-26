@@ -3,23 +3,28 @@ package cn.elytra.mod.productive_tinker_io.common.blockEntity;
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
 import cy.jdkdigital.productivelib.common.block.entity.CapabilityBlockEntity;
+import cy.jdkdigital.productivelib.registry.LibItems;
 import cy.jdkdigital.productivemetalworks.Config;
 import cy.jdkdigital.productivemetalworks.recipe.BlockCastingRecipe;
 import cy.jdkdigital.productivemetalworks.recipe.ItemCastingRecipe;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.util.RecipeHelper;
+import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -35,12 +40,22 @@ import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import net.neoforged.neoforge.registries.datamaps.builtin.Waxable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.stream.Stream;
+
 public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvider {
+
+    private static final Object2DoubleMap<DeferredHolder<Item, ? extends Item>> TIME_UPGRADE_MAP = new Object2DoubleArrayMap<>();
+
+    static {
+        TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME, 0.2);
+        TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME_2, 0.7);
+    }
 
     public int coolingTime = 0;
     public int maxCoolingTime = 1; // non-zero to prevent divided by zero
@@ -53,6 +68,11 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
             markDirtyAndSync();
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
         }
     };
 
@@ -75,7 +95,17 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
         @Override
         protected int getStackLimit(int slot, @NotNull ItemStack stack) {
+            return super.getStackLimit(slot, stack);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
             return 1;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            return isValidUpgradeItem(stack);
         }
     };
 
@@ -133,8 +163,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             ItemStack resultItemRemaining = itemHandler.insertItem(0, resultItem, false);
             if(!resultItemRemaining.isEmpty()) {
                 // something goes wrong, the item is failed to inserted to the slot, we need to drop it to the world
-                ItemEntity itemEntity = new ItemEntity(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, resultItemRemaining);
-                level.addFreshEntity(itemEntity);
+                Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, resultItemRemaining);
             }
 
             recipe = null;
@@ -151,7 +180,8 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             int recipeAmountFluid = recipe.getFluidAmount(level, fluidHandler.getFluid());
             ItemStack resultItem = recipe.getResultItem(level, fluidHandler.getFluid());
             if(fluidHandler.getFluidAmount() >= recipeAmountFluid && itemHandler.insertItem(0, resultItem, true).isEmpty()) {
-                this.coolingTime = (int) (recipeAmountFluid / Config.foundryCoolingModifier);
+                int originalTime = (int) (recipeAmountFluid / Config.foundryCoolingModifier);
+                this.coolingTime = getUpgradeReducedRecipeTime(originalTime, upgradeHandler);
                 this.maxCoolingTime = coolingTime;
                 this.recipe = recipe;
                 this.consumedFluid = fluidHandler.drain(recipeAmountFluid, IFluidHandler.FluidAction.EXECUTE);
@@ -208,7 +238,36 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     }
 
     public void dropItemStackOnRemove() {
+        if(level == null) {
+            return;
+        }
 
+        Stream<ItemStack> stream = Stream.<ItemStack>builder().add(castInv.getStackInSlot(0)).add(itemHandler.getStackInSlot(0)).add(upgradeHandler.getStackInSlot(0)).add(upgradeHandler.getStackInSlot(1)).build();
+        stream.filter(it -> !it.isEmpty()).forEach(item -> Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, item));
+    }
+
+    public static boolean isValidUpgradeItem(ItemStack stack) {
+        for(DeferredHolder<Item, ? extends Item> upgraderHolder : TIME_UPGRADE_MAP.keySet()) {
+            if(stack.is(upgraderHolder.get())) {
+                return true;
+            }
+        }
+        return stack.is(MetalworksRegistrator.CASTING_BASIN.get().asItem());
+    }
+
+    private static int getUpgradeReducedRecipeTime(int originalTime, ItemStackHandler upgrades) {
+        double timeReduction = 0.0;
+        outer:
+        for(int i = 0; i < upgrades.getSlots(); i++) {
+            ItemStack upgrade = upgrades.getStackInSlot(i);
+            for(var upgradeAndReduction : TIME_UPGRADE_MAP.object2DoubleEntrySet()) {
+                if(upgrade.is(upgradeAndReduction.getKey())) {
+                    timeReduction = upgradeAndReduction.getDoubleValue();
+                    break outer;
+                }
+            }
+        }
+        return Math.max(1, (int) (originalTime * (1 - timeReduction)));
     }
 
     @Override
