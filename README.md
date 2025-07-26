@@ -1,25 +1,31 @@
+# Productive Tinker IO
 
-Installation information
-=======
+A Productive Metalworks addon that adds stuffs inspired from Tinker I/O.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+<img src="screenshot.png" alt="The Screenshot of Productive Tinker IO" width="50%">
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Content
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+### Smart Basin (Smart Output)
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+The only ported content is the Smart Output, or Smart Basin in this version.
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+It can be used to casting the fluid metals into ingots, blocks, gears, etc, depends on what casting mold is used.
+
+### Upgrades
+
+The upgrades are not ported actually, I used the ProductiveLib ones for the same purpose.
+
+It can accept tier 1 and 2 speed upgrade to accelerate the recipe by 20% and 70%. Only one upgrade will take effect.
+
+And you can use Basin from ProductiveMetalworks as upgrades to activate the Basin mode of the Smart Basin.
+
+The redstone upgrade is not ported, and I don't have a plan for it for now. You can open an issue to push this.
+
+### More?
+
+You can just ask for more features in issues.
+
+## Credits
+
+Thank gkbm2013 for creating the excellent [Tinker I/O](https://github.com/gkbm2013/tinker-IO).
