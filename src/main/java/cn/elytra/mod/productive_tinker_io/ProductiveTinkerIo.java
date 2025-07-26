@@ -40,7 +40,7 @@ public class ProductiveTinkerIo {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     public static final DeferredBlock<Block> BASIN_BLOCK = BLOCKS.register("basin", () -> new BasinBlock());
-    public static final DeferredItem<BlockItem> BASIN_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", BASIN_BLOCK);
+    public static final DeferredItem<BlockItem> BASIN_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("basin", BASIN_BLOCK);
     // public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder().alwaysEdible().nutrition(1).saturationModifier(2f).build()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BasinBlockEntity>> BASIN_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("basin", () -> BlockEntityType.Builder.of(BasinBlockEntity::new, BASIN_BLOCK.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<BasinMenu>> BASIN_MENU_TYPE = MENU_TYPES.register("basin", () -> IMenuTypeExtension.create(BasinMenu::new));

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_top",
+  "textures": {
+    "side": "productive_tinker_io:block/smart_output_side",
+    "top": "productive_tinker_io:block/smart_output_top"
+  }
+}
