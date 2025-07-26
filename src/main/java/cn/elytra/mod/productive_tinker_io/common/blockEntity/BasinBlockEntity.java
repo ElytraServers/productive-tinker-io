@@ -1,6 +1,7 @@
 package cn.elytra.mod.productive_tinker_io.common.blockEntity;
 
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
+import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
 import cy.jdkdigital.productivelib.common.block.entity.CapabilityBlockEntity;
 import cy.jdkdigital.productivemetalworks.Config;
 import cy.jdkdigital.productivemetalworks.recipe.BlockCastingRecipe;
@@ -11,7 +12,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,9 +37,10 @@ import net.neoforged.neoforge.registries.datamaps.builtin.Waxable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BasinBlockEntity extends CapabilityBlockEntity {
+public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvider {
 
-    private int coolingTime = 0;
+    public int coolingTime = 0;
+    public int maxCoolingTime = 1; // non-zero to prevent divided by zero
 
     private @Nullable ItemCastingRecipe recipe;
     private @Nullable FluidStack consumedFluid;
@@ -127,6 +133,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity {
             recipe = null;
             consumedFluid = null;
             coolingTime = 0;
+            maxCoolingTime = 1;
             sync(level);
         }
     }
@@ -138,6 +145,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity {
             ItemStack resultItem = recipe.getResultItem(level, fluidHandler.getFluid());
             if(fluidHandler.getFluidAmount() >= recipeAmountFluid && itemHandler.insertItem(0, resultItem, true).isEmpty()) {
                 this.coolingTime = (int) (recipeAmountFluid / Config.foundryCoolingModifier);
+                this.maxCoolingTime = coolingTime;
                 this.recipe = recipe;
                 this.consumedFluid = fluidHandler.drain(recipeAmountFluid, IFluidHandler.FluidAction.EXECUTE);
 
@@ -155,7 +163,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity {
         return coolingTime > 0;
     }
 
-    private boolean isTable() {
+    public boolean isTable() {
         return true;
     }
 
@@ -208,5 +216,11 @@ public class BasinBlockEntity extends CapabilityBlockEntity {
         if(tag.contains("coolingTime")) {
             coolingTime = tag.getInt("coolingTime");
         }
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
+        return new BasinMenu(i, inventory, this);
     }
 }
