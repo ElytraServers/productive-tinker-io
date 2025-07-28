@@ -4,11 +4,11 @@ import cn.elytra.mod.productive_tinker_io.common.block.BasinBlock;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
 import com.mojang.logging.LogUtils;
+import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -55,7 +55,7 @@ public class ProductiveTinkerIo {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if(event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+        if(event.getTab() == MetalworksRegistrator.TAB.get()) {
             event.accept(BASIN_BLOCK_ITEM);
         }
     }
