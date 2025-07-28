@@ -2,7 +2,8 @@
 
 A Productive Metalworks addon that adds stuffs inspired from Tinker I/O.
 
-<img src="screenshot.png" alt="The Screenshot of Productive Tinker IO" width="50%">
+<img src="screenshot.png" alt="The Screenshot of Productive Tinker IO">
+<img src="screenshot_recipe.png" alt="The Screenshot of Productive Tinker IO">
 
 ## Content
 
