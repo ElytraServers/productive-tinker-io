@@ -1,0 +1,54 @@
+name: Release
+on:
+  push:
+    tags: [ "*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      RELEASE_VERSION: ${{ github.ref_name }}
+      SNAPSHOT: ${{ endsWith(github.ref_name, '-pre') || endsWith(github.ref_name, '-snapshot') }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: |
+            8
+            17
+            21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
+          validate-wrappers: true
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Compile the mod
+        run: ./gradlew --build-cache --info --stacktrace build
+      - name: Publishing
+        uses: Kira-NT/mc-publish@v3.3
+        continue-on-error: true
+        with:
+          modrinth-id: UTFQ57AN
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          # curseforge-id: 1282484
+          # curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          github-generate-changelog: true
+          github-prerelease: ${{ env.SNAPSHOT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          game-versions: |
+            1.21.1
+          # dependencies: |
+          #  terrafirmacraft{modrinth:JaCEZUhg}{curseforge:302973}
+          fail-mode: skip
