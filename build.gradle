@@ -42,6 +42,10 @@ repositories {
         url "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
     }
     maven {
+        name "TerraformersMC"
+        url "https://maven.terraformersmc.com/"
+    }
+    maven {
         name "JitPack Maven"
         url "https://jitpack.io"
     }
@@ -170,6 +174,7 @@ dependencies {
     compileOnly("com.github.Taskeren:productivelib:jitpack-SNAPSHOT")
 
     implementation("maven.modrinth:jade:15.10.2+neoforge")
+    runtimeOnly("dev.emi:emi-neoforge:1.1.21+1.21.1")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

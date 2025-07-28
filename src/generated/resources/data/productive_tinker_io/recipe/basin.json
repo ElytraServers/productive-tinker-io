@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "b": {
+      "tag": "productivemetalworks:fire_bricks"
+    },
+    "i": {
+      "item": "minecraft:ice"
+    }
+  },
+  "pattern": [
+    "bib",
+    "i i",
+    "bib"
+  ],
+  "result": {
+    "count": 1,
+    "id": "productive_tinker_io:basin"
+  }
+}

@@ -1,18 +1,25 @@
 package cn.elytra.mod.productive_tinker_io.data;
 
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
+import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -44,6 +51,20 @@ class EventHandlerData {
                 @Override
                 protected void registerStatesAndModels() {
                     simpleBlockWithItem(ProductiveTinkerIo.BASIN_BLOCK.get(), models().cubeTop(name(ProductiveTinkerIo.BASIN_BLOCK.get()), ResourceLocation.fromNamespaceAndPath(MODID, "block/smart_output_side"), ResourceLocation.fromNamespaceAndPath(MODID, "block/smart_output_top")));
+                }
+            });
+
+            gen.addProvider(event.includeServer(), new RecipeProvider(output, provider) {
+                @Override
+                protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ProductiveTinkerIo.BASIN_BLOCK.get())
+                            .pattern("bib")
+                            .pattern("i i")
+                            .pattern("bib")
+                            .define('b', ModTags.Items.FIRE_BRICKS)
+                            .define('i', Blocks.ICE)
+                            .unlockedBy(getHasName(ProductiveTinkerIo.BASIN_BLOCK.get()), has(ProductiveTinkerIo.BASIN_BLOCK.get()))
+                            .save(recipeOutput);
                 }
             });
         }
