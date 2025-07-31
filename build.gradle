@@ -234,5 +234,8 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+
+        excludeDirs += file("run/crash-reports")
+        excludeDirs += file("run/logs")
     }
 }

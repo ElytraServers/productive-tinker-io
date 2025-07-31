@@ -4,13 +4,9 @@ import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import com.mojang.serialization.MapCodec;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
-import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -25,12 +21,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class BasinBlock extends BaseEntityBlock {
 
-    public static final Properties PROPERTIES = Properties.ofFullCopy(MetalworksRegistrator.CASTING_BASIN.get());
     private static final MapCodec<? extends BaseEntityBlock> CODEC = simpleCodec(BasinBlock::new);
 
     public BasinBlock() {
         // copy of Casting Basin from Productive Metalworks
-        this(PROPERTIES);
+        this(makeProperties());
+    }
+
+    private static Properties makeProperties() {
+        return Properties.ofFullCopy(MetalworksRegistrator.CASTING_BASIN.get());
     }
 
     public BasinBlock(BlockBehaviour.Properties properties) {
