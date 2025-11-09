@@ -35,6 +35,10 @@ public record SpeedUpgradeComponent(double recipeTimeFactor) implements TooltipP
         return new SpeedUpgradeComponent(recipeTimeFactor);
     }
 
+    public SpeedUpgradeComponent copyIncreased(final double increment) {
+        return new SpeedUpgradeComponent(this.recipeTimeFactor() + increment);
+    }
+
     public double getClampedValue() {
         return Mth.clamp(recipeTimeFactor, 0, 1);
     }

@@ -5,6 +5,7 @@ import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cn.elytra.mod.productive_tinker_io.common.dataComponent.BasinUpgradeComponent;
 import cn.elytra.mod.productive_tinker_io.common.dataComponent.SpeedUpgradeComponent;
 import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
+import cn.elytra.mod.productive_tinker_io.common.recipe.SpeedUpgradeRecipe;
 import com.mojang.logging.LogUtils;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import net.minecraft.Util;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -44,6 +46,7 @@ public class ProductiveTinkerIo {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPES = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SpeedUpgradeComponent>> SPEED_UPGRADE_COMPONENT = DATA_COMPONENT_TYPES.register("speed_upgrade", () -> DataComponentType.<SpeedUpgradeComponent>builder().persistent(SpeedUpgradeComponent.CODEC).networkSynchronized(SpeedUpgradeComponent.STREAM_CODEC).build());
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BasinUpgradeComponent>> BASIN_UPGRADE_COMPONENT = DATA_COMPONENT_TYPES.register("basin_upgrade", () -> DataComponentType.<BasinUpgradeComponent>builder().persistent(BasinUpgradeComponent.CODEC).networkSynchronized(BasinUpgradeComponent.STREAM_CODEC).build());
@@ -55,6 +58,7 @@ public class ProductiveTinkerIo {
     @SuppressWarnings("DataFlowIssue")
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BasinBlockEntity>> BASIN_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("basin", () -> BlockEntityType.Builder.of(BasinBlockEntity::new, BASIN_BLOCK.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<BasinMenu>> BASIN_MENU_TYPE = MENU_TYPES.register("basin", () -> IMenuTypeExtension.create(BasinMenu::new));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpeedUpgradeRecipe>> SPEED_UPGRADE_RECIPE = RECIPE_SERIALIZERS.register("speed_upgrade", () -> SpeedUpgradeRecipe.SERIALIZER);
 
     public ProductiveTinkerIo(IEventBus modEventBus, ModContainer ignoredModContainer) {
         BLOCKS.register(modEventBus);
@@ -63,6 +67,7 @@ public class ProductiveTinkerIo {
         MENU_TYPES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
         DATA_COMPONENT_TYPES.register(modEventBus);
+        RECIPE_SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(this::addCreative);
 

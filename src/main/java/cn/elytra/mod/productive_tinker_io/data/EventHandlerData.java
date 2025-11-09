@@ -1,6 +1,7 @@
 package cn.elytra.mod.productive_tinker_io.data;
 
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
+import cn.elytra.mod.productive_tinker_io.common.recipe.SpeedUpgradeRecipe;
 import cn.elytra.mod.productive_tinker_io.data.custom.MultiLanguageProvider;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.registry.ModTags;
@@ -13,6 +14,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
@@ -109,6 +111,8 @@ class EventHandlerData {
                             .requires(MetalworksRegistrator.CASTING_BASIN.get())
                             .unlockedBy(getHasName(ProductiveTinkerIo.BASIN_UPGRADE.get()), has(ProductiveTinkerIo.BASIN_UPGRADE.get()))
                             .save(recipeOutput);
+
+                    SpecialRecipeBuilder.special(SpeedUpgradeRecipe::new).save(recipeOutput, "speed_upgrade");
                 }
             });
         }
