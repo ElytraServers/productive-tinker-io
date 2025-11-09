@@ -176,10 +176,8 @@ dependencies {
     // we compile with the jitpack one because it's with its sources,
     // and we run with the curse one because the productivelib is missing.
     runtimeOnly("curse.maven:productive_metalworks-1184570:6745157")
-    compileOnly("com.github.Taskeren:productivemetalworks:jitpack-SNAPSHOT") {
-        exclude group: "local.libs"
-    }
-    compileOnly("com.github.Taskeren:productivelib:jitpack-SNAPSHOT")
+    compileOnly("com.github.JDKDigital:productivemetalworks:3372a75c72")
+    compileOnly("com.github.JDKDigital:productivelib:8627665282")
 
     implementation("maven.modrinth:jade:15.10.2+neoforge")
     runtimeOnly("dev.emi:emi-neoforge:1.1.21+1.21.1")

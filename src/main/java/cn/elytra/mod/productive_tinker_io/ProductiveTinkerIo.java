@@ -9,6 +9,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -37,7 +38,9 @@ public class ProductiveTinkerIo {
 
     public static final DeferredBlock<Block> BASIN_BLOCK = BLOCKS.register("basin", () -> new BasinBlock());
     public static final DeferredItem<BlockItem> BASIN_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("basin", BASIN_BLOCK);
-    // public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder().alwaysEdible().nutrition(1).saturationModifier(2f).build()));
+    public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade");
+    public static final DeferredItem<Item> SPEED_UPGRADE_MAX = ITEMS.registerSimpleItem("speed_upgrade_max");
+    public static final DeferredItem<Item> BASIN_UPGRADE = ITEMS.registerSimpleItem("basin_upgrade");
     @SuppressWarnings("DataFlowIssue")
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BasinBlockEntity>> BASIN_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("basin", () -> BlockEntityType.Builder.of(BasinBlockEntity::new, BASIN_BLOCK.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<BasinMenu>> BASIN_MENU_TYPE = MENU_TYPES.register("basin", () -> IMenuTypeExtension.create(BasinMenu::new));
@@ -57,6 +60,8 @@ public class ProductiveTinkerIo {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if(event.getTab() == MetalworksRegistrator.TAB.get()) {
             event.accept(BASIN_BLOCK_ITEM);
+            event.accept(SPEED_UPGRADE);
+            event.accept(BASIN_UPGRADE);
         }
     }
 

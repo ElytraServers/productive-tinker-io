@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "productivemetalworks:casting_basin"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "productive_tinker_io:basin_upgrade"
+  }
+}

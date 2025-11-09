@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "productive_tinker_io:item/basin_upgrade"
+  }
+}

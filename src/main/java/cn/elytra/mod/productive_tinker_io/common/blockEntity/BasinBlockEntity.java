@@ -31,6 +31,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -51,9 +52,13 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
     private static final Object2DoubleMap<DeferredHolder<Item, ? extends Item>> TIME_UPGRADE_MAP = new Object2DoubleArrayMap<>();
 
+    private static final Lazy<Item> CASTING_BASIN_ITEM = Lazy.of(() -> MetalworksRegistrator.CASTING_BASIN.get().asItem());
+
     static {
         TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME, 0.2);
         TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME_2, 0.7);
+        TIME_UPGRADE_MAP.put(ProductiveTinkerIo.SPEED_UPGRADE, 0.5);
+        TIME_UPGRADE_MAP.put(ProductiveTinkerIo.SPEED_UPGRADE_MAX, 0.99);
     }
 
     public int coolingTime = 0;
@@ -61,6 +66,22 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
     private @Nullable ItemCastingRecipe recipe;
     private @Nullable FluidStack consumedFluid;
+
+    /**
+     * @return ratio of reduced time (0.2 = 20% off), or -1 if not a valid upgrade.
+     */
+    public static double getSpeedUpgradeValue(ItemStack stack) {
+        for(Object2DoubleMap.Entry<DeferredHolder<Item, ? extends Item>> entry : TIME_UPGRADE_MAP.object2DoubleEntrySet()) {
+            if(stack.is(entry.getKey())) {
+                return entry.getDoubleValue();
+            }
+        }
+        return -1;
+    }
+
+    public static boolean isBasinUpgrade(ItemStack stack) {
+        return stack.is(ProductiveTinkerIo.BASIN_UPGRADE) || stack.is(CASTING_BASIN_ITEM.get());
+    }
 
     // the casting item slot
     public ItemStackHandler castInv = new ItemStackHandler(1) {
@@ -203,8 +224,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
     public boolean isBasinMode() {
         for(int i = 0; i < upgradeHandler.getSlots(); i++) {
-            // TODO: replace it with an upgrader
-            if(upgradeHandler.getStackInSlot(i).is(MetalworksRegistrator.CASTING_BASIN.get().asItem())) {
+            if(isBasinUpgrade(upgradeHandler.getStackInSlot(i))) {
                 return true;
             }
         }
@@ -262,12 +282,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
      * @return {@code true} if the item is a valid upgrade.
      */
     public static boolean isValidUpgradeItem(ItemStack stack) {
-        for(DeferredHolder<Item, ? extends Item> upgraderHolder : TIME_UPGRADE_MAP.keySet()) {
-            if(stack.is(upgraderHolder.get())) {
-                return true;
-            }
-        }
-        return stack.is(MetalworksRegistrator.CASTING_BASIN.get().asItem());
+        return isBasinUpgrade(stack) || getSpeedUpgradeValue(stack) > 0;
     }
 
     /**
@@ -279,14 +294,12 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
      */
     private static int getUpgradeReducedRecipeTime(int originalTime, ItemStackHandler upgrades) {
         double timeReduction = 0.0;
-        outer:
         for(int i = 0; i < upgrades.getSlots(); i++) {
             ItemStack upgrade = upgrades.getStackInSlot(i);
-            for(var upgradeAndReduction : TIME_UPGRADE_MAP.object2DoubleEntrySet()) {
-                if(upgrade.is(upgradeAndReduction.getKey())) {
-                    timeReduction = upgradeAndReduction.getDoubleValue();
-                    break outer;
-                }
+            double speedUpgrade = getSpeedUpgradeValue(upgrade);
+            if(speedUpgrade > 0) {
+                timeReduction = speedUpgrade;
+                break;
             }
         }
         return Math.max(1, (int) (originalTime * (1 - timeReduction)));

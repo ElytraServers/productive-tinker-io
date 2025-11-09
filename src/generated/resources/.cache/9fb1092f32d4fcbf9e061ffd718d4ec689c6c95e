@@ -1,3 +1,7 @@
-// 1.21.1	2025-07-28T21:33:22.0430306	Recipes
+// 1.21.1	2025-11-08T20:25:38.6834376	Recipes
 c204b8722208a12ad4c887962a89754ff1843de0 data/productive_tinker_io/advancement/recipes/misc/basin.json
+01322e0922fb70a098ba84cadb62ce015127df47 data/productive_tinker_io/advancement/recipes/misc/basin_upgrade.json
+71ad2675038cb0ec5549e337cb699f79c7d235ae data/productive_tinker_io/advancement/recipes/misc/speed_upgrade.json
 6b576cf2819021ec993611d89e7633a80a53585b data/productive_tinker_io/recipe/basin.json
+114ede7ae4ad898971767fec399120c13a7baa88 data/productive_tinker_io/recipe/basin_upgrade.json
+d91106b60674e5fe1a6cda1ca7c0ac9ace04296c data/productive_tinker_io/recipe/speed_upgrade.json

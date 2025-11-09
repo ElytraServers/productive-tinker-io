@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_basin_upgrade": {
+      "conditions": {
+        "items": [
+          {
+            "items": "productive_tinker_io:basin_upgrade"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "productive_tinker_io:speed_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_basin_upgrade"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "productive_tinker_io:speed_upgrade"
+    ]
+  }
+}
