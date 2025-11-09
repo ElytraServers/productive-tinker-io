@@ -1,6 +1,7 @@
 package cn.elytra.mod.productive_tinker_io.data;
 
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
+import cn.elytra.mod.productive_tinker_io.data.custom.MultiLanguageProvider;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.HolderLookup;
@@ -20,8 +21,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -43,12 +44,18 @@ class EventHandlerData {
             CompletableFuture<HolderLookup.Provider> provider = event.getLookupProvider();
             ExistingFileHelper helper = event.getExistingFileHelper();
 
-            gen.addProvider(event.includeClient(), new LanguageProvider(output, MODID, "en_us") {
+            gen.addProvider(event.includeClient(), new MultiLanguageProvider(output, MODID, "en_us", "zh_cn") {
                 @Override
-                protected void addTranslations() {
-                    add(ProductiveTinkerIo.BASIN_BLOCK.get(), "Smart Basin");
-                    add(ProductiveTinkerIo.SPEED_UPGRADE.get(), "Speed Upgrade");
-                    add(ProductiveTinkerIo.BASIN_UPGRADE.get(), "Basin Upgrade");
+                public void addTranslations() {
+                    add(ProductiveTinkerIo.BASIN_BLOCK.get(),
+                            Pair.of("en_us", "Smart Basin"),
+                            Pair.of("zh_cn", "智能铸造盆"));
+                    add(ProductiveTinkerIo.SPEED_UPGRADE.get(),
+                            Pair.of("en_us", "Speed Upgrade"),
+                            Pair.of("zh_cn", "速度升级"));
+                    add(ProductiveTinkerIo.BASIN_UPGRADE.get(),
+                            Pair.of("en_us", "Basin Upgrade"),
+                            Pair.of("zh_cn", "铸造盆升级"));
                 }
             });
 

@@ -1,3 +1,5 @@
 {
-  "block.productive_tinker_io.basin": "Smart Basin"
+  "block.productive_tinker_io.basin": "Smart Basin",
+  "item.productive_tinker_io.basin_upgrade": "Basin Upgrade",
+  "item.productive_tinker_io.speed_upgrade": "Speed Upgrade"
 }
