@@ -56,6 +56,17 @@ class EventHandlerData {
                     add(ProductiveTinkerIo.BASIN_UPGRADE.get(),
                             Pair.of("en_us", "Basin Upgrade"),
                             Pair.of("zh_cn", "铸造盆升级"));
+
+                    add(ProductiveTinkerIo.SPEED_UPGRADE.get().getDescriptionId() + ".max",
+                            Pair.of("en_us", "Max Speed Upgrade"),
+                            Pair.of("zh_cn", "最大速度升级"));
+
+                    add("productive_tinker_io.basin_upgrade.tooltip",
+                            Pair.of("en_us", "Change Mode of Smart Basin to Basin Mode"),
+                            Pair.of("zh_cn", "将智能铸造盆切换为铸造盆模式"));
+                    add("productive_tinker_io.speed_upgrade.tooltip",
+                            Pair.of("en_us", "Reduce recipe time in Smart Basin by %s"),
+                            Pair.of("zh_cn", "减少智能铸造盆的配方%s时间"));
                 }
             });
 

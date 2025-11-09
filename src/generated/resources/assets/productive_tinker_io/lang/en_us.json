@@ -1,5 +1,8 @@
 {
   "block.productive_tinker_io.basin": "Smart Basin",
   "item.productive_tinker_io.basin_upgrade": "Basin Upgrade",
-  "item.productive_tinker_io.speed_upgrade": "Speed Upgrade"
+  "item.productive_tinker_io.speed_upgrade": "Speed Upgrade",
+  "item.productive_tinker_io.speed_upgrade.max": "Max Speed Upgrade",
+  "productive_tinker_io.basin_upgrade.tooltip": "Change Mode of Smart Basin to Basin Mode",
+  "productive_tinker_io.speed_upgrade.tooltip": "Reduce recipe time in Smart Basin by %s"
 }

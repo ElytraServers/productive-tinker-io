@@ -1,5 +1,8 @@
 {
   "block.productive_tinker_io.basin": "智能铸造盆",
   "item.productive_tinker_io.basin_upgrade": "铸造盆升级",
-  "item.productive_tinker_io.speed_upgrade": "速度升级"
+  "item.productive_tinker_io.speed_upgrade": "速度升级",
+  "item.productive_tinker_io.speed_upgrade.max": "最大速度升级",
+  "productive_tinker_io.basin_upgrade.tooltip": "将智能铸造盆切换为铸造盆模式",
+  "productive_tinker_io.speed_upgrade.tooltip": "减少智能铸造盆的配方%s时间"
 }

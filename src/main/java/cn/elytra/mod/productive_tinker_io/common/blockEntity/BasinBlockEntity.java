@@ -1,16 +1,14 @@
 package cn.elytra.mod.productive_tinker_io.common.blockEntity;
 
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
+import cn.elytra.mod.productive_tinker_io.common.dataComponent.SpeedUpgradeComponent;
 import cn.elytra.mod.productive_tinker_io.common.menu.BasinMenu;
 import cy.jdkdigital.productivelib.common.block.entity.CapabilityBlockEntity;
-import cy.jdkdigital.productivelib.registry.LibItems;
 import cy.jdkdigital.productivemetalworks.Config;
 import cy.jdkdigital.productivemetalworks.recipe.BlockCastingRecipe;
 import cy.jdkdigital.productivemetalworks.recipe.ItemCastingRecipe;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.util.RecipeHelper;
-import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +21,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -31,7 +28,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -40,7 +36,6 @@ import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import net.neoforged.neoforge.registries.datamaps.builtin.Waxable;
 import org.jetbrains.annotations.NotNull;
@@ -49,17 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.stream.Stream;
 
 public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvider {
-
-    private static final Object2DoubleMap<DeferredHolder<Item, ? extends Item>> TIME_UPGRADE_MAP = new Object2DoubleArrayMap<>();
-
-    private static final Lazy<Item> CASTING_BASIN_ITEM = Lazy.of(() -> MetalworksRegistrator.CASTING_BASIN.get().asItem());
-
-    static {
-        TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME, 0.2);
-        TIME_UPGRADE_MAP.put(LibItems.UPGRADE_TIME_2, 0.7);
-        TIME_UPGRADE_MAP.put(ProductiveTinkerIo.SPEED_UPGRADE, 0.5);
-        TIME_UPGRADE_MAP.put(ProductiveTinkerIo.SPEED_UPGRADE_MAX, 0.99);
-    }
 
     public int coolingTime = 0;
     public int maxCoolingTime = 1; // non-zero to prevent divided by zero
@@ -71,16 +55,16 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
      * @return ratio of reduced time (0.2 = 20% off), or -1 if not a valid upgrade.
      */
     public static double getSpeedUpgradeValue(ItemStack stack) {
-        for(Object2DoubleMap.Entry<DeferredHolder<Item, ? extends Item>> entry : TIME_UPGRADE_MAP.object2DoubleEntrySet()) {
-            if(stack.is(entry.getKey())) {
-                return entry.getDoubleValue();
-            }
+        if(stack.has(ProductiveTinkerIo.SPEED_UPGRADE_COMPONENT)) {
+            SpeedUpgradeComponent suc = stack.get(ProductiveTinkerIo.SPEED_UPGRADE_COMPONENT);
+            assert suc != null;
+            return suc.getClampedValue();
         }
         return -1;
     }
 
     public static boolean isBasinUpgrade(ItemStack stack) {
-        return stack.is(ProductiveTinkerIo.BASIN_UPGRADE) || stack.is(CASTING_BASIN_ITEM.get());
+        return stack.has(ProductiveTinkerIo.BASIN_UPGRADE_COMPONENT);
     }
 
     // the casting item slot
