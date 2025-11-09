@@ -11,6 +11,7 @@ import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.util.RecipeHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
@@ -48,7 +49,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     public int coolingTime = 0;
     public int maxCoolingTime = 1; // non-zero to prevent divided by zero
 
-    private @Nullable ItemCastingRecipe recipe;
+    private @Nullable ItemCastingRecipe lastRecipe;
     private @Nullable FluidStack consumedFluid;
 
     /**
@@ -68,7 +69,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     }
 
     // the casting item slot
-    public ItemStackHandler castInv = new ItemStackHandler(1) {
+    public ItemStackHandler invCasting = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
@@ -82,7 +83,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     };
 
     // the output item slot
-    public ItemStackHandler itemHandler = new ItemStackHandler(1) {
+    public ItemStackHandler invOutput = new ItemStackHandler(1) {
 
         @Override
         protected void onContentsChanged(int slot) {
@@ -92,16 +93,11 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     };
 
     // the upgraders slots, size 2
-    public ItemStackHandler upgradeHandler = new ItemStackHandler(2) {
+    public ItemStackHandler invUpgrade = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
             markDirtyAndSync();
-        }
-
-        @Override
-        protected int getStackLimit(int slot, @NotNull ItemStack stack) {
-            return super.getStackLimit(slot, stack);
         }
 
         @Override
@@ -129,7 +125,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     }
 
     public IItemHandler getItemHandler() {
-        return itemHandler;
+        return invOutput;
     }
 
     public IFluidHandler getFluidHandler() {
@@ -150,56 +146,85 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
     private void onServerTick(ServerLevel level, BlockPos blockPos, BlockState blockState, BasinBlockEntity basinBlockEntity) {
         if(isCooling()) {
-            onTickCooling(level);
+            // reduce coolingTime,
+            // when it's 0, finish the recipe, and we'll find the recipe below.
+            onTickCooling();
         }
         if(!isCooling()) {
+            // when there's no recipe or when the cooling is finished,
+            // we try to find a recipe.
             onTickFindRecipe(level);
         }
     }
 
-    private void onTickCooling(ServerLevel level) {
-        if(recipe == null || consumedFluid == null) {
-            recipe = null;
-            consumedFluid = null;
+    private void onTickCooling() {
+        if(lastRecipe == null || consumedFluid == null) {
+            // invalid state, where the consumedFluid should never be null when the recipe is processing.
+            coolingTime = 0;
+            maxCoolingTime = 0;
             return;
         }
 
         if(--coolingTime <= 0) { // recipe done
-            ItemStack resultItem = recipe.getResultItem(level, consumedFluid);
-            ItemStack resultItemRemaining = itemHandler.insertItem(0, resultItem, false);
-            if(!resultItemRemaining.isEmpty()) {
-                // something goes wrong, the item is failed to inserted to the slot, we need to drop it to the world
-                Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, resultItemRemaining);
-            }
-
-            recipe = null;
-            consumedFluid = null;
-            coolingTime = 0;
-            maxCoolingTime = 1;
-            markDirtyAndSync();
+            finishRecipeAndResetStates(this.lastRecipe);
         }
     }
 
     private void onTickFindRecipe(ServerLevel level) {
-        ItemCastingRecipe recipe = findRecipe(level, castInv.getStackInSlot(0), fluidHandler.getFluid());
-        if(recipe != null) {
-            int recipeAmountFluid = recipe.getFluidAmount(level, fluidHandler.getFluid());
-            ItemStack resultItem = recipe.getResultItem(level, fluidHandler.getFluid());
-            if(fluidHandler.getFluidAmount() >= recipeAmountFluid && itemHandler.insertItem(0, resultItem, true).isEmpty()) {
-                int originalTime = (int) (recipeAmountFluid / Config.foundryCoolingModifier);
-                this.coolingTime = getUpgradeReducedRecipeTime(originalTime, upgradeHandler);
-                this.maxCoolingTime = coolingTime;
-                this.recipe = recipe;
-                this.consumedFluid = fluidHandler.drain(recipeAmountFluid, IFluidHandler.FluidAction.EXECUTE);
+        int whileLoopCount = 0; // threshold
+        while(!isCooling() && whileLoopCount++ < 1000) { // when not processing, try find a recipe.
+            // retry the last recipe if possible for performance
+            if(lastRecipe == null || !tryProcessRecipe(lastRecipe)) {
+                // if failed, find another recipe then
+                ItemCastingRecipe recipe = findRecipe(level, invCasting.getStackInSlot(0), fluidHandler.getFluid());
+                if(recipe == null) break;
+                if(!tryProcessRecipe(recipe)) break;
+            }
 
-                markDirtyAndSync();
+            // save and sync
+            markDirtyAndSync();
+
+            // check 0-tick recipe, immediately finish it
+            if(!isCooling()) {
+                finishRecipeAndResetStates(this.lastRecipe);
             }
         }
     }
 
-    private void sync(ServerLevel level) {
-        invalidateCapabilities();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2);
+    /**
+     * Dump the output of the recipe and reset the status of this block entity.
+     */
+    private void finishRecipeAndResetStates(ItemCastingRecipe recipe) {
+        ItemStack resultItem = recipe.getResultItem(level, consumedFluid);
+        ItemStack insertRemaining = invOutput.insertItem(0, resultItem, false);
+        if(!insertRemaining.isEmpty()) {
+            // something goes wrong, the item is failed to inserted to the slot, we need to drop it to the world
+            Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, insertRemaining);
+        }
+
+        lastRecipe = null;
+        consumedFluid = null;
+        coolingTime = 0;
+        maxCoolingTime = 1;
+        markDirtyAndSync();
+    }
+
+    /**
+     * @return {@code true} when the fluid is drained, time is set up, and the item should be able to be outputted.
+     */
+    private boolean tryProcessRecipe(@NotNull ItemCastingRecipe recipe) {
+        int recipeFluidInput = recipe.getFluidAmount(level, fluidHandler.getFluid());
+        ItemStack recipeItemOutput = recipe.getResultItem(level, fluidHandler.getFluid());
+
+        // check input amount and output space
+        if(fluidHandler.getFluidAmount() >= recipeFluidInput && invOutput.insertItem(0, recipeItemOutput, true).isEmpty()) {
+            this.consumedFluid = fluidHandler.drain(recipeFluidInput, IFluidHandler.FluidAction.EXECUTE);
+            this.maxCoolingTime = getUpgradeReducedRecipeTime((int) (recipeFluidInput / Config.foundryCoolingModifier), invUpgrade);
+            this.coolingTime = this.maxCoolingTime;
+            this.lastRecipe = recipe;
+            return true;
+        }
+        return false;
     }
 
     public boolean isCooling() {
@@ -207,8 +232,8 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
     }
 
     public boolean isBasinMode() {
-        for(int i = 0; i < upgradeHandler.getSlots(); i++) {
-            if(isBasinUpgrade(upgradeHandler.getStackInSlot(i))) {
+        for(int i = 0; i < invUpgrade.getSlots(); i++) {
+            if(isBasinUpgrade(invUpgrade.getStackInSlot(i))) {
                 return true;
             }
         }
@@ -225,7 +250,8 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         } else {
             if(!isTableMode && fluid.is(MetalworksRegistrator.MOLTEN_WAX.get())) {
                 if(cast.getItem() instanceof BlockItem castItem) {
-                    Waxable waxData = castItem.getBlock().builtInRegistryHolder().getData(NeoForgeDataMaps.WAXABLES);
+                    // Waxable waxData = castItem.getBlock().builtInRegistryHolder().getData(NeoForgeDataMaps.WAXABLES);
+                    Waxable waxData = BuiltInRegistries.BLOCK.wrapAsHolder(castItem.getBlock()).getData(NeoForgeDataMaps.WAXABLES);
                     if(waxData != null) {
                         return new BlockCastingRecipe(Ingredient.of(cast), new SizedFluidIngredient(FluidIngredient.single(fluid), 50), waxData.waxed().asItem().getDefaultInstance(), true);
                     }
@@ -254,7 +280,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             return;
         }
 
-        Stream<ItemStack> stream = Stream.<ItemStack>builder().add(castInv.getStackInSlot(0)).add(itemHandler.getStackInSlot(0)).add(upgradeHandler.getStackInSlot(0)).add(upgradeHandler.getStackInSlot(1)).build();
+        Stream<ItemStack> stream = Stream.<ItemStack>builder().add(invCasting.getStackInSlot(0)).add(invOutput.getStackInSlot(0)).add(invUpgrade.getStackInSlot(0)).add(invUpgrade.getStackInSlot(1)).build();
         stream.filter(it -> !it.isEmpty()).forEach(item -> Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, item));
     }
 
@@ -286,20 +312,20 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
                 break;
             }
         }
-        return Math.max(1, (int) (originalTime * (1 - timeReduction)));
+        return Math.max(0, (int) (originalTime * (1 - timeReduction)));
     }
 
     @Override
     public void savePacketNBT(CompoundTag tag, HolderLookup.Provider provider) {
         super.savePacketNBT(tag, provider);
 
-        tag.put("cast", castInv.serializeNBT(provider));
-        tag.put("upgraders", upgradeHandler.serializeNBT(provider));
+        tag.put("cast", invCasting.serializeNBT(provider));
+        tag.put("upgraders", invUpgrade.serializeNBT(provider));
         tag.putInt("coolingTime", coolingTime);
         tag.putInt("maxCoolingTime", maxCoolingTime);
 
-        if(recipe != null) {
-            tag.put("recipe", getRecipeSerializer().codec().encoder().encodeStart(NbtOps.INSTANCE, recipe).getOrThrow());
+        if(lastRecipe != null) {
+            tag.put("recipe", getRecipeSerializer().codec().encoder().encodeStart(NbtOps.INSTANCE, lastRecipe).getOrThrow());
         }
         if(consumedFluid != null) {
             tag.put("consumedFluid", consumedFluid.save(provider));
@@ -311,10 +337,10 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
         super.loadPacketNBT(tag, provider);
 
         if(tag.contains("cast")) {
-            castInv.deserializeNBT(provider, tag.getCompound("cast"));
+            invCasting.deserializeNBT(provider, tag.getCompound("cast"));
         }
         if(tag.contains("upgraders")) {
-            upgradeHandler.deserializeNBT(provider, tag.getCompound("upgraders"));
+            invUpgrade.deserializeNBT(provider, tag.getCompound("upgraders"));
         }
         if(tag.contains("coolingTime")) {
             coolingTime = tag.getInt("coolingTime");
@@ -323,7 +349,7 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
             maxCoolingTime = tag.getInt("maxCoolingTime");
         }
         if(tag.contains("recipe")) {
-            recipe = getRecipeSerializer().codec().decoder().decode(NbtOps.INSTANCE, tag.getCompound("recipe"))
+            lastRecipe = getRecipeSerializer().codec().decoder().decode(NbtOps.INSTANCE, tag.getCompound("recipe"))
                     .getOrThrow().getFirst();
         }
         if(tag.contains("consumedFluid")) {
@@ -349,7 +375,8 @@ public class BasinBlockEntity extends CapabilityBlockEntity implements MenuProvi
 
     public void markDirtyAndSync() {
         if(level instanceof ServerLevel serverLevel) {
-            sync(serverLevel);
+            invalidateCapabilities();
+            serverLevel.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2);
         }
         setChanged();
     }

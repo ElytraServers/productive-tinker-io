@@ -65,7 +65,7 @@ public class BasinMenu extends AbstractContainer {
             }
         });
 
-        addSlot(new SlotItemHandler(blockEntity.castInv, 0, 68, 33) {
+        addSlot(new SlotItemHandler(blockEntity.invCasting, 0, 68, 33) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.is(ModTags.Items.CASTS);
@@ -77,13 +77,13 @@ public class BasinMenu extends AbstractContainer {
                 return false;
             }
         });
-        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 0, 153, 25) {
+        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 0, 153, 25) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return BasinBlockEntity.isValidUpgradeItem(stack);
             }
         });
-        addSlot(new SlotItemHandler(blockEntity.upgradeHandler, 1, 153, 43) {
+        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 1, 153, 43) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return BasinBlockEntity.isValidUpgradeItem(stack);
