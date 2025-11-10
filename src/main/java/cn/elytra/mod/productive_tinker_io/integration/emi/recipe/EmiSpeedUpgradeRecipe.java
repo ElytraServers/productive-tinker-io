@@ -13,7 +13,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.neoforged.neoforge.common.util.Lazy;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class EmiSpeedUpgradeRecipe extends EmiPatternCraftingRecipe {
     public SlotWidget getOutputWidget(int x, int y) {
         return new GeneratedSlotWidget(r -> {
             List<ItemStack> items = getItems(r);
-            ItemStack result = RECIPE.get().assemble(CraftingInput.of(3, 3, items), null);
+            ItemStack result = RECIPE.get().getOutput(items);
             return EmiStack.of(result);
         }, unique, x, y);
     }

@@ -182,7 +182,9 @@ dependencies {
     compileOnly("com.github.JDKDigital:productivelib:8627665282")
 
     implementation("maven.modrinth:jade:15.10.2+neoforge")
-    implementation("dev.emi:emi-neoforge:1.1.21+1.21.1")
+    compileOnly("dev.emi:emi-neoforge:1.1.21+1.21.1")
+    compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.25.0.325")
+    runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.25.0.325")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

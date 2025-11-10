@@ -1,5 +1,6 @@
 {
   "block.productive_tinker_io.basin": "智能铸造盆",
+  "config.jade.plugin_productive_tinker_io.basin": "智能铸造盆",
   "item.productive_tinker_io.basin_upgrade": "铸造盆升级",
   "item.productive_tinker_io.speed_upgrade": "速度升级",
   "item.productive_tinker_io.speed_upgrade.max": "最大速度升级",

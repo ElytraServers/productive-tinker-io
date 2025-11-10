@@ -15,6 +15,8 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class SpeedUpgradeRecipe extends CustomRecipe {
 
     public static final RecipeSerializer<SpeedUpgradeRecipe> SERIALIZER = RecipeSerializer.register("speed_upgrade", new SimpleCraftingRecipeSerializer<>(SpeedUpgradeRecipe::new));
@@ -39,19 +41,40 @@ public class SpeedUpgradeRecipe extends CustomRecipe {
 
     @Override
     public @NotNull ItemStack assemble(@NotNull CraftingInput craftingInput, @Nullable HolderLookup.Provider provider) {
-        ItemStack speedUpgradeItem = CraftingInputUtils.singleOrNull(craftingInput, i -> i.is(ProductiveTinkerIo.SPEED_UPGRADE));
-        if(speedUpgradeItem == null) return ItemStack.EMPTY;
-        int packedIceCount = CraftingInputUtils.count(craftingInput, SpeedUpgradeRecipe::isIceKind);
-        if(packedIceCount <= 0) return ItemStack.EMPTY;
-        ItemStack result = speedUpgradeItem.copy();
-        result.update(ProductiveTinkerIo.SPEED_UPGRADE_COMPONENT.get(), SpeedUpgradeComponent.of(0.0), suc -> {
-            // increase the value by n over 10 of the remaining
-            // where n should always be less than 10, so it won't ever reach to the max
-            double remainingIncrement = 1.0 - suc.getClampedValue();
-            double increment = remainingIncrement * (packedIceCount / 10.0) * FACTOR_INCREMENT;
-            return suc.copyIncreased(increment);
-        });
-        return result;
+        return getOutput(craftingInput.items());
+    }
+
+    public double getIncrement(double original, int iceCount) {
+        // increase the value by n over 10 of the remaining
+        // where n should always be less than 10, so it won't ever reach to the max
+        double remainingIncrement = 1.0 - original;
+        return remainingIncrement * (iceCount / 10.0) * FACTOR_INCREMENT;
+    }
+
+    public ItemStack getOutput(ItemStack speedUpgrade, int iceCount) {
+        ItemStack copy = speedUpgrade.copy();
+        copy.update(ProductiveTinkerIo.SPEED_UPGRADE_COMPONENT.get(), SpeedUpgradeComponent.of(0.0), suc -> suc.copyIncreased(getIncrement(suc.getClampedValue(), iceCount)));
+        return copy;
+    }
+
+    public ItemStack getOutput(List<ItemStack> input) {
+        ItemStack speedUpgrade = null;
+        int iceCount = 0;
+        for(ItemStack itemStack : input) {
+            if(itemStack.is(ProductiveTinkerIo.SPEED_UPGRADE)) {
+                // only 1 upgrade is allowed
+                if(speedUpgrade != null) return ItemStack.EMPTY;
+                else speedUpgrade = itemStack;
+            } else if(isIceKind(itemStack)) {
+                iceCount++;
+            } else if(!itemStack.isEmpty()) {
+                // invalid input
+                return ItemStack.EMPTY;
+            }
+        }
+        if(speedUpgrade == null) return ItemStack.EMPTY;
+
+        return getOutput(speedUpgrade, iceCount);
     }
 
     @Override

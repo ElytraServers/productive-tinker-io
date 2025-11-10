@@ -69,6 +69,10 @@ class EventHandlerData {
                     add("productive_tinker_io.speed_upgrade.tooltip",
                             Pair.of("en_us", "Reduce recipe time in Smart Basin by %s"),
                             Pair.of("zh_cn", "减少智能铸造盆的配方%s时间"));
+
+                    add("config.jade.plugin_productive_tinker_io.basin",
+                            Pair.of("en_us", "Smart Basin"),
+                            Pair.of("zh_cn", "智能铸造盆"));
                 }
             });
 
