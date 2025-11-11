@@ -3,12 +3,14 @@ package cn.elytra.mod.productive_tinker_io.data;
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.recipe.SpeedUpgradeRecipe;
 import cn.elytra.mod.productive_tinker_io.data.custom.MultiLanguageProvider;
+import cn.elytra.mod.productive_tinker_io.data.lootTable.ProductiveTinkerIoBlockDrops;
 import cy.jdkdigital.productivemetalworks.registry.MetalworksRegistrator;
 import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -16,17 +18,22 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo.MODID;
@@ -119,6 +126,19 @@ class EventHandlerData {
                     SpecialRecipeBuilder.special(SpeedUpgradeRecipe::new).save(recipeOutput, "speed_upgrade");
                 }
             });
+
+            gen.addProvider(event.includeServer(), new BlockTagsProvider(output, provider, MODID, helper) {
+                @Override
+                protected void addTags(HolderLookup.@NotNull Provider provider) {
+                    tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ProductiveTinkerIo.BASIN_BLOCK.get());
+                }
+            });
+
+            gen.addProvider(event.includeServer(), new LootTableProvider(
+                    output,
+                    Set.of(),
+                    List.of(new LootTableProvider.SubProviderEntry(ProductiveTinkerIoBlockDrops::new, LootContextParamSets.BLOCK)),
+                    provider));
         }
     }
 

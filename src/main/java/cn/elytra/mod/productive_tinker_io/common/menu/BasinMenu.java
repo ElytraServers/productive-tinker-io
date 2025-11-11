@@ -3,7 +3,6 @@ package cn.elytra.mod.productive_tinker_io.common.menu;
 import cn.elytra.mod.productive_tinker_io.ProductiveTinkerIo;
 import cn.elytra.mod.productive_tinker_io.common.blockEntity.BasinBlockEntity;
 import cy.jdkdigital.productivelib.container.AbstractContainer;
-import cy.jdkdigital.productivemetalworks.registry.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -65,30 +64,15 @@ public class BasinMenu extends AbstractContainer {
             }
         });
 
-        addSlot(new SlotItemHandler(blockEntity.invCasting, 0, 68, 33) {
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                return stack.is(ModTags.Items.CASTS);
-            }
-        });
-        addSlot(new SlotItemHandler(blockEntity.getItemHandler(), 0, 128, 34) {
+        addSlot(new SlotItemHandler(blockEntity.invCasting, 0, 68, 33));
+        addSlot(new SlotItemHandler(blockEntity.invOutput, 0, 128, 34) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return false;
             }
         });
-        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 0, 153, 25) {
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                return BasinBlockEntity.isValidUpgradeItem(stack);
-            }
-        });
-        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 1, 153, 43) {
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                return BasinBlockEntity.isValidUpgradeItem(stack);
-            }
-        });
+        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 0, 153, 25));
+        addSlot(new SlotItemHandler(blockEntity.invUpgrade, 1, 153, 43));
 
         layoutPlayerInventorySlots(playerInventory, 0, 8, 84);
     }
